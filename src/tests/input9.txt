@@ -1,0 +1,9 @@
+Window "Radio Button Test" (300, 200) Layout Grid (5, 1):
+  Grape
+    Radio "First";
+    Radio "Second";
+    Radio "Third";
+    Radio "Fourth";
+    Radio "Fifth";
+  End;
+End.

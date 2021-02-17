@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import static javax.swing.JOptionPane.showMessageDialog;
+
 public class Main {
 
     private static Scanner scanner;
@@ -23,7 +25,7 @@ public class Main {
             String initToken = getToken(firstLine);
 
             if (!initToken.equals("Window")) {
-                System.out.println("Lexical Error: Required initializing token is \"Window\"");
+                showMessageDialog(null,"Lexical Error: Required initializing token is \"Window\"");
                 return;
             }
 
@@ -33,8 +35,7 @@ public class Main {
             frame.setLocationRelativeTo(null);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 
@@ -53,13 +54,13 @@ public class Main {
         //set size
         String[] size = firstLine.split("((?<=\\()|(?=\\())|((?<=\\)|(?=\\))))");
 
-        if (size.length <= 2) {
-            System.out.println("Syntax Error: Window size must be enclosed by parentheses");
+        if (!size[0].equals("(") || !size[2].equals(")")) {
+            showMessageDialog(null,"Lexical Error: Window size must be enclosed by parentheses");
             System.exit(0);
         } else {
-            frameSize = getDimensions(size[1]);
+            frameSize = convertDimensions(size[1]);
             if (frameSize.size() != 2) {
-                System.out.println("Syntax Error: Window dimensions accept two integer parameters");
+                showMessageDialog(null,"Syntax Error: Window dimensions accept two integer parameters");
                 System.exit(0);
             } else {
                 frame.setSize(frameSize.get(0), frameSize.get(1));
@@ -69,7 +70,7 @@ public class Main {
 
         //set layout and add content pane
         if (!getToken(firstLine).trim().equals("Layout")) {
-            System.out.println("Lexical Error: Frame layout must be set, use token \"Layout\"");
+            showMessageDialog(null,"Lexical Error: Frame layout must be set, use token \"Layout\"");
             System.exit(0);
         } else {
             firstLine = firstLine.substring(firstLine.indexOf(" ")).trim();
@@ -82,6 +83,9 @@ public class Main {
         while (scanner.hasNextLine()) {
             contentPane.add(makeComponent(nextLine));
             nextLine = scanner.nextLine().trim();
+            if(getToken(nextLine.trim()).equals("End.")){
+                break;
+            }
         }
 
         return frame;
@@ -96,7 +100,7 @@ public class Main {
             String layout = inputLine.substring(token.length());
 
             if (!getToken(layout.trim()).equals("Layout")) {
-                System.out.println("Lexical Error: Panel layout must be set, use token \"Layout\"");
+                showMessageDialog(null,"Lexical Error: Panel layout must be set, use token \"Layout\"");
                 return null;
             } else {
                 layout = layout.substring(layout.indexOf("t") + 1);
@@ -125,7 +129,7 @@ public class Main {
 
         if (token.equals("Textfield")) {
             String widthString = inputLine.substring(token.length());
-            ArrayList<Integer> widthArray = getDimensions(widthString);
+            ArrayList<Integer> widthArray = convertDimensions(widthString);
             return new JTextField(widthArray.get(0));
         }
 
@@ -141,8 +145,11 @@ public class Main {
 
         if (token.equals("Label")) {
             return new JLabel(getTitle(componentText));
-        } else {
-            System.out.println("invalid token");
+        }
+
+        else {
+            showMessageDialog(null,"Lexical Error: invalid token");
+            System.exit(0);
             return null;
         }
     }
@@ -150,26 +157,32 @@ public class Main {
     private static void setLayout(String token, JPanel panel) {
 
         if (token.charAt(token.length() - 1) != ':') {
-            System.out.println("Lexical/Syntax Error: Layout production must end with : character");
+            showMessageDialog(null, "Lexical Error: Layout production must end with : character");
             System.exit(0);
         }
-        if (token.equals("Flow:")) {
+        else if (token.equals("Flow:")) {
             panel.setLayout(new FlowLayout());
         } else {
-            String[] gridToken = token.split("\\(");
-            if (gridToken[0].equals("Grid")) {
-                ArrayList<Integer> gridDimensions = getDimensions(gridToken[1]);
+            String[] gridToken = token.split("((?<=\\()|(?=\\())|((?<=\\)|(?=\\))))");
+
+
+            if (!gridToken[0].trim().equals("Grid")) {
+                showMessageDialog(null,"Lexical Error: Invalid token, expected Flow or Grid");
+                System.exit(0);
+            } else if (gridToken.length <= 4) {
+                showMessageDialog(null,"Lexical Error: Grid dimensions must be enclosed by parentheses");
+                System.exit(0);
+            } else {
+
+                ArrayList<Integer> gridDimensions = convertDimensions(gridToken[2]);
                 if (gridDimensions.size() == 2) {
                     panel.setLayout(new GridLayout(gridDimensions.get(0), gridDimensions.get(1)));
                 } else if (gridDimensions.size() == 4) {
                     panel.setLayout(new GridLayout(gridDimensions.get(0), gridDimensions.get(1), gridDimensions.get(2), gridDimensions.get(3)));
                 } else {
-                    System.out.println("Syntax Error: GridLayout takes either 2 or 4 integers as parameters");
+                    showMessageDialog(null,"Syntax Error: GridLayout takes either 2 or 4 integers as parameters");
                     System.exit(0);
                 }
-            } else {
-                System.out.println("Lexical Error: Invalid token");
-                System.exit(0);
             }
         }
     }
@@ -190,17 +203,17 @@ public class Main {
         }
 
         if (quote.length <= 2) {
-            System.out.println("Syntax/Lexical Error: Component names must be enclosed by quotation marks");
+            showMessageDialog(null,"Lexical Error: Component names must be enclosed by quotation marks");
             System.exit(0);
         } else if (!quote[0].equals("\"") || !quote[2].equals("\"")) {
-            System.out.println("Syntax/Lexical Error: Component names must be enclosed by quotation marks");
+            showMessageDialog(null,"Lexical Error: Component names must be enclosed by quotation marks");
             System.exit(0);
         }
 
         return quote[1];
     }
 
-    private static ArrayList<Integer> getDimensions(String inputLine) {
+    private static ArrayList<Integer> convertDimensions(String inputLine) {
 
         ArrayList<Integer> dimensions = new ArrayList<>();
 

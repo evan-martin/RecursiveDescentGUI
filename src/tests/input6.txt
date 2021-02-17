@@ -1,0 +1,15 @@
+Window "Nested Panel Test" (550, 200) Layout Flow:
+  Label "Main Panel";
+  Panel Layout Flow:
+    Panel Layout Flow:
+      Panel Layout Flow:
+        Panel Layout Flow:
+          Button "Fifth Panel";
+        End;
+        Button "Fourth Panel";
+      End;
+      Button "Third Panel";
+    End;
+    Button "Second Panel";
+  End;
+End.
